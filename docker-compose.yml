@@ -1,0 +1,105 @@
+version: '3'
+
+services:
+  nats-server:
+    image: nats:latest
+    restart: always
+    ports:
+      - 8222:8222
+      # - 4222:4222
+      # - 6222:6222
+  
+  client-gateway:
+    build:
+      context: ./client-gateway
+      dockerfile: Dockerfile.dev
+    ports:
+      - ${CLIENT_GATEWAY_PORT}:4000
+    develop:
+      watch:
+        - action: sync
+          path: ./client-gateway/src
+          target: /usr/src/app/src
+          ignore:
+            - node_modules
+    volumes:
+      - ./client-gateway/src:/usr/src/app/src
+    command: npm run start:dev
+    env_file:
+    - ./client-gateway/.env
+    environment:
+      - NATS_SERVERS=${NATS_SERVERS}
+  
+  products-ms:
+    build: 
+      context: ./products-ms
+      dockerfile: Dockerfile.dev
+    develop:
+      watch:
+        - action: sync
+          path: ./products-ms/src
+          target: /usr/src/app/src
+          ignore:
+            - node_modules
+    volumes:
+      - ./products-ms/src:/usr/src/app/src
+    command: npm run start:dev2
+    env_file:
+    - ./products-ms/.env
+    environment:
+      - NATS_SERVERS=${NATS_SERVERS}
+
+  orders-ms:
+    # links:
+    #   - orders-db
+    depends_on:
+      - orders-db
+      # orders-db:
+      #   condition: service_healthy
+    build: 
+      context: ./orders-ms
+      dockerfile: Dockerfile.dev
+    develop:
+      watch:
+        - action: sync
+          path: ./products-ms/src
+          target: /usr/src/app/src
+          ignore:
+            - node_modules
+    volumes:
+      - ./orders-ms/src:/usr/src/app/src
+    command: npm run start:dev2
+    env_file:
+    - ./orders-ms/.env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@orders-db:5432/${POSTGRES_DB}?schema=public
+      - NATS_SERVERS=${NATS_SERVERS}
+    # networks:
+    #   - app-network
+    # restart: on-failure
+  
+  orders-db:
+    container_name: orders_database
+    image: postgres:16.3
+    restart: always
+    volumes:
+      - ./orders-ms/postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    # networks:
+    #   - app-network
+    # healthcheck:
+    #   test: ["CMD-SHELL", "pg_isready -U postgres"]
+    #   interval: 5s
+    #   timeout: 5s
+    #   retries: 5
+
+# networks:
+#   app-network:
+#     driver: bridge
+
+# docker compose up --build --watch -d
