@@ -1,0 +1,3 @@
+[submodule "client-gateway"]
+	path = client-gateway
+	url = https://github.com/link2618/api-gatetway-ms-nestjs.git
