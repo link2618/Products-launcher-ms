@@ -97,6 +97,26 @@ services:
     #   interval: 5s
     #   timeout: 5s
     #   retries: 5
+  
+  payments-ms:
+    container_name: payments-ms
+    build: 
+      context: ./payments-ms
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./payments-ms/src:/usr/src/app/src
+    command: npm run start:dev
+    ports:
+      - ${PAYMENTS_MS_PORT}:${PAYMENTS_MS_PORT}
+    env_file:
+    - ./payments-ms/.env
+    environment:
+      - PORT=${PAYMENTS_MS_PORT}
+      - NATS_SERVERS=${NATS_SERVERS}
+      - STRIPE_SECRET=${STRIPE_SECRET}
+      - STRIPE_SUCCESS_URL=${STRIPE_SUCCESS_URL}
+      - STRIPE_CANCEL_URL=${STRIPE_CANCEL_URL}
+      - STRIPE_ENDPOINT_SECRET=${STRIPE_ENDPOINT_SECRET}
 
 # networks:
 #   app-network:
