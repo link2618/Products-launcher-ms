@@ -30,6 +30,36 @@ services:
     environment:
       - NATS_SERVERS=${NATS_SERVERS}
   
+  auth-ms:
+    build: 
+      context: ./auth-ms
+      dockerfile: Dockerfile.dev
+    # depends_on:
+    #   - mongo
+    volumes:
+      - ./auth-ms/src:/usr/src/app/src
+    command: npm run start:dev2
+    env_file:
+    - ./auth-ms/.env
+    environment:
+      - PORT=4004
+      - NATS_SERVERS=${NATS_SERVERS}
+      - DATABASE_URL=${AUTH_DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+  
+  # mongo:
+  #   image: mongo:5.0.16
+  #   command: ["--replSet", "rs0"]
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: root
+  #     MONGO_INITDB_ROOT_PASSWORD: root
+  #     MONGO_INITDB_DATABASE: AuthDB 
+  #   ports:
+  #     - 27017:27017
+  #   volumes:
+  #    - ./auth-ms/mongo_data:/data/db
+  #   restart: always
+  
   products-ms:
     build: 
       context: ./products-ms

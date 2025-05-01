@@ -10,3 +10,6 @@
 [submodule "payments-ms"]
 	path = payments-ms
 	url = https://github.com/link2618/Payments-ms-nestjs.git
+[submodule "auth-ms"]
+	path = auth-ms
+	url = https://github.com/link2618/Auth-ms-nestjs.git
